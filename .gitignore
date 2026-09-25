@@ -37,3 +37,19 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 .nox/
+
+# Virtual environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+.DS_Store
+
+# Local secrets and credentials: never commit these
+.env
+.env.*
+*.env
+google-ads.yaml
+*credentials*.json
+client_secret*.json
+service-account*.json

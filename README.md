@@ -118,6 +118,18 @@ To enable it, set the following environment variables:
 - `GOOGLE_ADS_MCP_STORAGE_FIRESTORE_DATABASE`: (Optional) Firestore database name for `firestore` persistent storage. Defaults to `(default)`.
 - `GOOGLE_ADS_MCP_STORAGE_ENCRYPTION_KEY`: (Optional) Encryption key for stored OAuth tokens.
 - `GOOGLE_ADS_MCP_STORAGE_DISABLE_ENCRYPTION`: (Optional) Set to `true` to disable token encryption.
+- `GOOGLE_ADS_MCP_ALLOWED_DOMAINS`: (Optional) Comma-separated email domains
+  whose users may use the server, for example `example.com`.
+- `GOOGLE_ADS_MCP_ALLOWED_EMAILS`: (Optional) Comma-separated email addresses
+  that may use the server regardless of their domain.
+
+By default, any Google account can complete the OAuth flow. When either
+allowlist variable is set, a user is admitted only if their verified Google
+account email belongs to an allowed domain **or** is listed explicitly; every
+other token is rejected with HTTP 401 before any tool runs. Matching is exact
+and case-insensitive: subdomains are not included. Set these whenever the
+server is publicly reachable, because requests from any admitted user are
+sent with the server's developer token.
 
 The `redis` and `firestore` backends need their storage library installed
 alongside the server: `pip install py-key-value-aio[redis]` and
@@ -428,6 +440,12 @@ Make sure to set the required environment variables:
   its own.
 - `FASTMCP_HOST`: Set this to `0.0.0.0` to allow FastMCP to accept connections from all IP addresses.
 - `GOOGLE_ADS_LOGIN_CUSTOMER_ID`: Required if your access to the customer account is through a manager account. Set it to the customer ID of the manager account. See [Login Customer Id](#login-customer-id) above for details.
+- `GOOGLE_ADS_MCP_ALLOWED_DOMAINS` / `GOOGLE_ADS_MCP_ALLOWED_EMAILS`: (Strongly recommended) Restrict which Google accounts can use the service. `--allow-unauthenticated` is required because MCP clients discover and perform OAuth against the service itself, so Cloud Run IAM or IAP cannot gate it; without an allowlist, any Google account can sign in. See [Option 1](#option-1-using-fastmcp-oauth-proxy) above.
+
+  These values are comma-separated, which clashes with the default delimiter
+  of `--set-env-vars`. Use gcloud's alternate delimiter syntax, for example
+  `--update-env-vars="^;^GOOGLE_ADS_MCP_ALLOWED_DOMAINS=example.com;GOOGLE_ADS_MCP_ALLOWED_EMAILS=a@partner.com,b@partner.com"`,
+  or an `--env-vars-file`.
 
 ```shell
 gcloud run deploy google-ads-mcp \

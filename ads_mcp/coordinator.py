@@ -19,13 +19,17 @@ server using `@mcp.tool` annotations, thereby 'coordinating' the bootstrapping
 of the server.
 """
 
+import logging
 import os
 from typing import Any
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.google import GoogleProvider
 from mcp import types as mcp_types
 from mcp.server.subscriptions import InMemorySubscriptionBus, ListenHandler
+from ads_mcp.access_control import AccessPolicy, RestrictedGoogleProvider
 from ads_mcp.auth_storage import create_client_storage
+
+logger = logging.getLogger(__name__)
 
 _CLIENT_ID = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_ID")
 _CLIENT_SECRET = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET")
@@ -50,7 +54,17 @@ if _CLIENT_ID and _CLIENT_SECRET:
     if client_storage is not None:
         provider_kwargs["client_storage"] = client_storage
 
-    auth = GoogleProvider(**provider_kwargs)
+    access_policy = AccessPolicy.from_env()
+    if access_policy.enabled:
+        auth = RestrictedGoogleProvider(
+            access_policy=access_policy, **provider_kwargs
+        )
+    else:
+        logger.warning(
+            "OAuth is enabled without GOOGLE_ADS_MCP_ALLOWED_DOMAINS or "
+            "GOOGLE_ADS_MCP_ALLOWED_EMAILS; any Google account can sign in."
+        )
+        auth = GoogleProvider(**provider_kwargs)
     mcp = FastMCP("Google Ads Server", auth=auth)
 else:
     mcp = FastMCP("Google Ads Server")

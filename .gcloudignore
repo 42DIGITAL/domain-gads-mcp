@@ -1,0 +1,18 @@
+# Files excluded from the source uploaded by `gcloud builds submit` and
+# `gcloud run deploy --source`. The Docker build only needs the package
+# sources, pyproject.toml, README.md (referenced by pyproject.toml),
+# MANIFEST.in, LICENSE and the Dockerfile.
+#
+# When this file exists, gcloud ignores .gitignore unless it is included, so
+# pull in its rules (build artifacts, venvs, local secrets) first.
+#!include:.gitignore
+
+.gcloudignore
+.git/
+.gitignore
+.github/
+CODEOWNERS
+CONTRIBUTING.md
+docs/
+noxfile.py
+tests/
