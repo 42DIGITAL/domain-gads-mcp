@@ -12,7 +12,10 @@ COPY . .
 
 # Install the project and its dependencies
 # We use --system to install into the system Python environment in the container
-RUN uv pip install --system .
+# fastmcp is pinned because the patch below targets exactly 4.0.3; pyproject
+# only sets a lower bound, so newer releases would otherwise fail the build.
+# The firestore extra backs GOOGLE_ADS_MCP_STORAGE_TYPE=firestore on Cloud Run.
+RUN uv pip install --system ".[firestore]" "fastmcp==4.0.3"
 
 # Codex CLI 0.146 reports the RFC 9207 `iss` value as missing from the local
 # OAuth callback, even though FastMCP constructs the redirect with `iss` and
